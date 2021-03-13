@@ -791,4 +791,5 @@ _(Name)_:
 <input type="hidden" name="changeSlots" value="apply">
 <input type="hidden" name="poolName" value="<?=$name?>">
 <input type="hidden" name="poolSlots" value="0">
+<input type='hidden' name='csrf_token' value='<?=$var['csrf_token']?>'>
 </form>
