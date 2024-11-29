@@ -1120,10 +1120,10 @@ var gui_pages_available = [];
   });
 ?>
 
-function isValidURL(url) {
+unction isValidURL(url) {
   try {
-    new URL(url);
-    return true;
+    var ret = new URL(url);
+    return ret;
   } catch (err) {
     return false;
   }
@@ -1139,7 +1139,8 @@ $('body').on("click","a", function(e) {
     } 
 
     if (href !== "#" && href.indexOf("javascript") !== 0) {
-      if ( ! isValidURL(href) ) {
+      var dom = isValidURL(href);
+      if ( dom == false ) {
         if ( href.indexOf("/") == 0 ) {   // all internal links start with "/"
         return;
       }
@@ -1151,10 +1152,22 @@ $('body').on("click","a", function(e) {
       if ( $(this).hasClass("localURL") ) {
         return;
       }
+
+      try {
+        var domainsAllowed = JSON.parse($.cookie("allowedDomains"));
+      } catch(e) {
+        var domainsAllowed = new Object();
+      }
+      $.cookie("allowedDomains",JSON.stringify(domainsAllowed),{expires:3650}); // rewrite cookie to further extend expiration by 400 days
+
+      if ( domainsAllowed[dom.hostname] ) {
+        return;
+      }
+
       e.preventDefault();
       swal({
         title: "<?=_('External Link')?>",
-        text: "<span title='"+href+"'><?=_('Clicking OK will take you to a 3rd party website not associated with Limetech')?><br><br><b>"+href+"</span>",
+        text: "<span title='"+href+"'><?=_('Clicking OK will take you to a 3rd party website not associated with Limetech')?><br><br><b>"+href+"<br><br><input id='Link_Always_Allow' type='checkbox'></input><?=_('Always Allow')?> "+dom.hostname+"</span>",
         html: true,
         type: 'warning',
         showCancelButton: true,
@@ -1163,6 +1176,10 @@ $('body').on("click","a", function(e) {
         confirmButtonText: "<?=_('OK')?>"
       },function(isConfirm) {
         if (isConfirm) {
+          if ( $("#Link_Always_Allow").is(":checked") ) {
+            domainsAllowed[dom.hostname] = true;
+            $.cookie("allowedDomains",JSON.stringify(domainsAllowed),{expires:3650});
+          }
           var popupOpen = window.open(href,target);
           if ( !popupOpen || popupOpen.closed || typeof popupOpen == "undefined" ) {
             var popupWarning = addBannerWarning("<?=_('Popup Blocked.');?>");
