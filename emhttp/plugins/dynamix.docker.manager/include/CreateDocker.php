@@ -447,7 +447,7 @@ if (!empty($TS_no_peers) && !empty($TS_container)) {
   }
   // Construct WebUI URL on container template page
   // Check if webui_url, Tailscale WebUI and MagicDNS are not empty and make sure that MagicDNS is enabled
-  if ( !empty($webui_url) && !empty($xml['TailscaleWebUI']) && (!empty($TS_no_peers['CurrentTailnet']['MagicDNSEnabled']) || ($TS_no_peers['CurrentTailnet']['MagicDNSEnabled']??false))) {
+  if (!empty($webui_url) && !empty($xml['TailscaleWebUI']) && (!empty($TS_no_peers['CurrentTailnet']['MagicDNSEnabled']) || $TS_no_peers['CurrentTailnet']['MagicDNSEnabled'])) {
     // Check if serve or funnel are enabled by checking for [hostname] and replace string with TS_DNSName
     if (!empty($xml['TailscaleWebUI']) && strpos($xml['TailscaleWebUI'], '[hostname]') !== false && isset($TS_DNSName)) {
       $TS_webui_url = str_replace("[hostname][magicdns]", rtrim($TS_DNSName, '.'), $xml['TailscaleWebUI']);
@@ -1151,9 +1151,17 @@ _(Container Network)_:
 
 <?endif;?>
 
-<div markdown="1">
+<div markdown="1" class='TSNetworkAllowed'>
 _(Use Tailscale)_:
-: <input type="checkbox" class="switch-on-off" name="contTailscale" id="contTailscale" <?php if (!empty($xml['TailscaleEnabled']) && $xml['TailscaleEnabled'] == 'true') echo 'checked'; ?> onchange="showTailscale(this)">
+: <input type="checkbox" class="switch-on-off" name="contTailscale" id="contTailscale"  <?php if (!empty($xml['TailscaleEnabled']) && $xml['TailscaleEnabled'] == 'true') echo 'checked'; ?> onchange="showTailscale(this)">
+
+:docker_tailscale_help:
+
+</div>
+
+<div markdown="1" class='TSNetworkNotAllowed'>
+_(Use Tailscale)_:
+: _(Option disabled as Network type is not bridge or custom)_
 
 :docker_tailscale_help:
 
@@ -1335,7 +1343,7 @@ _(Tailscale WebUI)_:
 
 <div markdown="1" class="TSroutes noshow">
 _(Tailscale Advertise Routes)_:
-: <input type="text" pattern="[0-9:., \/]*" name="TSroutes" <?php if (!empty($xml['TailscaleRoutes'])) echo 'value="' . $xml['TailscaleRoutes'] . '"'?> placeholder="_(Leave empty if unsure)_">
+: <input type="text" pattern="[0-9:., ]*" name="TSroutes" <?php if (!empty($xml['TailscaleRoutes'])) echo 'value="' . $xml['TailscaleRoutes'] . '"'?> placeholder="_(Leave empty if unsure)_">
 
 :docker_tailscale_advertise_routes_help:
 
@@ -1534,9 +1542,14 @@ function showSubnet(bridge) {
     $('#netCONT').val('');
   }
   // make sure to re-trigger Tailscale check when network is changed
-  if ($('#contTailscale').prop('checked')) {
-    showTailscale(true);
-  }
+    if (bridge.match(/^(host|container)$/i) !== null) {
+      $('#contTailscale').click().switchButton({checked: false}).prop('checked',false);
+      $(".TSNetworkAllowed").hide();
+      $(".TSNetworkNotAllowed").show();
+    } else {
+      $(".TSNetworkAllowed").show();
+      $(".TSNetworkNotAllowed").hide();    
+    }
 }
 
 function processExitNodeoptions(value) {
@@ -1687,6 +1700,14 @@ function showTSAdvanced(checked) {
 }
 
 function showTailscale(source) {
+  var bridge = $('select[name="contNetwork"]').val();
+  if (bridge.match(/^(host|container)$/i) !== null) {
+    $('#contTailscale').click().switchButton({checked: false}).prop('checked',false);
+    $(".TSNetworkAllowed").hide();
+    $(".TSNetworkNotAllowed").show();
+
+  }
+
   if (!$.trim($('#TSallowlanaccess').val())) {
     $('#TSallowlanaccess').val('false');
   }
