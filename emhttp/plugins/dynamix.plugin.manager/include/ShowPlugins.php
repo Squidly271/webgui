@@ -70,7 +70,7 @@ foreach (glob($plugins,GLOB_NOSORT) as $plugin_link) {
   $os = $system && $name==$builtin[0];
   if ($init || $install) {
     //icon + link
-    $launch = plugin('launch',$plugin_file);
+    $launch = strip_tags(html_entity_decode(plugin('launch',$plugin_file)));
     if ($icon = plugin('icon',$plugin_file)) {
       if (substr($icon,-4)=='.png') {
         if (file_exists("plugins/$name/images/$icon")) {
@@ -160,7 +160,7 @@ foreach (glob($plugins,GLOB_NOSORT) as $plugin_link) {
         if ($past && $past != $version) {
           $status = make_link('install',$plugin_file,'forced');
         } else {
-          $latest = plugin('version',$filename);
+          $latest = strip_tags(html_entity_decode(plugin('version',$filename)));
           if ($os ? version_compare($latest,$version,'>') : strcmp($latest,$version) > 0) {
             if ($os) {
               $version = "<small>"._('I have read the release notes')."</small><input type='checkbox' onclick=\"$('#cmdUpdate').prop('disabled',!this.checked)\"><br><span class='red-text'>$latest</span>";
