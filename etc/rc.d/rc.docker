@@ -327,7 +327,7 @@ docker_network_start(){
       fi
       # add auto defined networks
       SUBNET=; GATEWAY=; SERVER=; RANGE=;
-      IPV4=$(ip -4 -br addr show $NETWORK scope global | awk '{print $3;exit}')
+      [[ -z ${!AUTO} || ${!AUTO} =~ "4" ]] && IPV4=$(ip -4 -br addr show $NETWORK scope global | awk '{print $3;exit}') || IPV4=
       if [[ -n $IPV4 ]]; then
         SUBNET=$(ip -4 route show $IPV4 dev $NETWORK | awk '{print $1;exit}')
         SERVER=${IPV4%/*}
@@ -337,7 +337,7 @@ docker_network_start(){
         GATEWAY=$(ip -4 route show default dev $NETWORK | awk '{print $3;exit}')
       fi
       SUBNET6=; GATEWAY6=; SERVER6=;
-      IPV6=$(ip -6 -br addr show $NETWORK scope global -temporary -deprecated | awk '{print $3;exit}')
+      [[ -z ${!AUTO} || ${!AUTO} =~ "6" ]] && IPV6=$(ip -6 -br addr show $NETWORK scope global -temporary -deprecated | awk '{print $3;exit}') || IPV6=
       if [[ -n $IPV6 ]]; then
         # get IPV6 subnet, preset to /64 if single host address is given
         [[ ${IPV6#*/} == 128 ]] && SUBNET6=$(echo $IPV6 | sed -r 's/^([^:]+):([^:]+):([^:]+):([^:]+).*$/\1:\2:\3:\4::\/64/') || SUBNET6=$(ip -6 route show $IPV6 dev $NETWORK | awk '{print $1;exit}')

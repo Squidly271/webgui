@@ -266,7 +266,13 @@ wifi_join(){
   else
     echo 1 >$CONF6/$PORT/disable_ipv6
   fi
-  if wifi_running; then REPLY="Joined"; else REPLY="Failed"; fi
+  if wifi_running; then
+    CC=($(iw reg get | grep -Po '^country \K..'))
+    [[ ${CC[0]} != ${CC[1]} ]] && iw reg set ${CC[1]}
+    REPLY="Joined"
+  else
+    REPLY="Failed"
+  fi
   log "$DAEMON...  $REPLY."
 }
 
