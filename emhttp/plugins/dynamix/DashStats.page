@@ -1774,6 +1774,7 @@ dashboard.on('message',function(msg,meta) {
 
 <?if ($apcupsd):?>
 var apcups = new NchanSubscriber('/sub/apcups',{subscriber:'websocket'});
+subscribers.push(apcups);
 apcups.on('message',function(msg) {
   var get = JSON.parse(msg);
   $('#ups_model').html(get[0]);
@@ -1798,12 +1799,12 @@ $(function() {
 <?endif;?>
   dropdown('enter_view');
   startup = false;
-  dashboard.start();
+  dashboard.start().monitor();
 <?if ($vmusage == "Y"):?>
-  vmdashusage.start();
+  vmdashusage.start().monitor();;
 <?endif;?>
 <?if ($apcupsd):?>
-  apcups.start();
+  apcups.start().monitor();
 <?endif;?>
 
   update900();
@@ -1828,37 +1829,13 @@ $(function() {
 
 
 
-<? if ( $display['dashupdate'] == "no" ):?>
-var dashboardPaused = false;
-$(window).focus(function() {
-  if (dashboardPaused !== false ) {
-    removeBannerWarning(dashboardPaused);
-    dashboardPaused = false;
-  
-    dashboard.start();
-    <?if ($vmusage == "Y"):?>
-        vmdashusage.start();
-    <?endif;?>
-    <?if ($apcupsd):?>
-      apcups.start();
-    <?endif;?>
-  }   
-});
+<? if ( $display['liveUpdate'] == "no" ):?>
 
 $(window).blur(function() {
-  if ( dashboardPaused == false ) {
-    dashboardPaused = addBannerWarning("_(Dashboard Updates Paused)_",false,true );
-    dashboard.stop();
-    <?if ($vmusage == "Y"):?>
-      vmdashusage.stop();
-    <?endif;?>
-    <?if ($apcupsd):?>
-      apcups.stop();
-    <?endif;?>
-    cpu     = [];
-    rxd     = [];
-    txd     = [];
-  }
+  cpu     = [];
+  rxd     = [];
+  txd     = [];
+
 });
 
 
