@@ -323,10 +323,10 @@ _(Favorites enabled)_:
 
 :display_favorites_enabled_help:
 
-_(Keep Dashboard updating when not in focus)_:
-: <select name='dashupdate'>
-  <?=mk_option($display['dashupdate'],"no",_('No'))?>
-  <?=mk_option($display['dashupdate'],"yes",_('Yes'))?>
+_(Allow realtime updates on inactive browsers)_:
+: <select name='liveUpdate'>
+  <?=mk_option($display['liveUpdate'],"no",_('No'))?>
+  <?=mk_option($display['liveUpdate'],"",_('Yes'))?>
   </select>
 
 <input type="submit" name="#default" value="_(Default)_" onclick="filename='reset'">
