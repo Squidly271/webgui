@@ -94,6 +94,7 @@ if ($themes2) {
 $notes = '/var/tmp/unRAIDServer.txt';
 if (!file_exists($notes)) file_put_contents($notes,shell_exec("$docroot/plugins/dynamix.plugin.manager/scripts/plugin changes $docroot/plugins/unRAIDServer/unRAIDServer.plg"));
 ?>
+<?php include '/usr/local/emhttp/plugins/theme.engine/include.php'; ?>
 </style>
 
 <noscript>
@@ -105,9 +106,14 @@ if (!file_exists($notes)) file_put_contents($notes,shell_exec("$docroot/plugins/
 <script>
 String.prototype.actionName = function(){return this.split(/[\\/]/g).pop();}
 String.prototype.channel = function(){return this.split(':')[1].split(',').findIndex((e)=>/\[\d\]/.test(e));}
+NchanSubscriber.prototype.monitor = function(){subscribers.push(this);}
 
 Shadowbox.init({skipSetup:true});
 context.init();
+
+// list of nchan subscribers to start/stop at focus change
+var subscribers = [];
+
 
 // server uptime
 var uptime = <?=strtok(exec("cat /proc/uptime"),' ')?>;
@@ -180,6 +186,7 @@ function updateTime() {
   setTimeout(updateTime,1000);
 }
 function refresh(top) {
+
   if (typeof top === 'undefined') {
     for (var i=0,element; element=document.querySelectorAll('input,button,select')[i]; i++) {element.disabled = true;}
     for (var i=0,link; link=document.getElementsByTagName('a')[i]; i++) { link.style.color = "gray"; } //fake disable
@@ -558,16 +565,7 @@ function digits(number) {
 function openNotifier() {
   $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
     $.each($.parseJSON(msg), function(i, notify){
-      $.jGrowl(notify.subject+'<br>'+notify.description,{
-        group: notify.importance,
-        header: notify.event+': '+notify.timestamp,
-        theme: notify.file,
-        sticky: true,
-        beforeOpen: function(e,m,o){if ($('div.jGrowl-notification').hasClass(notify.file)) return(false);},
-        afterOpen: function(e,m,o){if (notify.link) $(e).css('cursor','pointer');},
-        click: function(e,m,o){if (notify.link) location.replace(notify.link);},
-        close: function(e,m,o){$.post('/webGui/include/Notify.php',{cmd:'archive',file:notify.file,csrf_token:csrf_token});}
-      });
+      
     });
   });
 }
@@ -700,7 +698,7 @@ foreach ($buttons as $button) {
   if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
 }
 
-echo "<div class='nav-user show'><a id='board' href='#' class='hand'><b id='bell' class='icon-u-bell system'></b></a></div>";
+
 
 if ($themes2) echo "</div>";
 echo "</div></div>";
@@ -719,7 +717,7 @@ unset($buttons,$button);
 
 // Build page content
 // Reload page every X minutes during extended viewing?
-if (isset($myPage['Load']) && $myPage['Load']>0) echo "\n<script>timers.reload = setTimeout(function(){location.reload();},".($myPage['Load']*60000).");</script>\n";
+if (isset($myPage['Load']) && $myPage['Load']>0) echo "\n<script>timers.reload = setInterval(function(){if (nchanPaused === false)location.reload();},".($myPage['Load']*60000).");</script>\n";
 echo "<div class='tabs'>";
 $tab = 1;
 $pages = [];
@@ -907,22 +905,14 @@ defaultPage.on('message', function(msg,meta) {
       }
 <?if ($notify['display']==0):?>
       if (notify.show) {
-        $.jGrowl(notify.subject+'<br>'+notify.description,{
-          group: notify.importance,
-          header: notify.event+': '+notify.timestamp,
-          theme: notify.file,
-          beforeOpen: function(e,m,o){if ($('div.jGrowl-notification').hasClass(notify.file)) return(false);},
-          afterOpen: function(e,m,o){if (notify.link) $(e).css('cursor','pointer');},
-          click: function(e,m,o){if (notify.link) location.replace(notify.link);},
-          close: function(e,m,o){$.post('/webGui/include/Notify.php',{cmd:'hide',file:"<?=$notify['path'].'/unread/'?>"+notify.file,csrf_token:csrf_token}<?if ($notify['life']==0):?>,function(){$.post('/webGui/include/Notify.php',{cmd:'archive',file:notify.file,csrf_token:csrf_token});}<?endif;?>);}
-        });
+        
       }
 <?endif;?>
     });
-    $('#bell').removeClass('red-orb yellow-orb green-orb').prop('title',"<?=_('Alerts')?> ["+bell1+']\n'+"<?=_('Warnings')?> ["+bell2+']\n'+"<?=_('Notices')?> ["+bell3+']');
-    if (bell1) $('#bell').addClass('red-orb'); else
-    if (bell2) $('#bell').addClass('yellow-orb'); else
-    if (bell3) $('#bell').addClass('green-orb');
+
+
+
+
     break;
   }
 });
@@ -1093,7 +1083,7 @@ $(function() {
   $('#licensetype').addClass('red-text');
 <?endif;?>
   $('input[value="<?=_("Apply")?>"],input[value="Apply"],input[name="cmdEditShare"],input[name="cmdUserEdit"]').prop('disabled',true);
-  $('form').find('select,input[type=text],input[type=number],input[type=password],input[type=checkbox],input[type=radio],input[type=file],textarea').not('.lock').each(function(){$(this).on('input change',function() {
+  $('form').find('select,input[type=text],input[type=color],input[type=number],input[type=password],input[type=checkbox],input[type=radio],input[type=file],textarea').not('.lock').each(function(){$(this).on('input change',function() {
     var form = $(this).parentsUntil('form').parent();
     form.find('input[value="<?=_("Apply")?>"],input[value="Apply"],input[name="cmdEditShare"],input[name="cmdUserEdit"]').not('input.lock').prop('disabled',false);
     form.find('input[value="<?=_("Done")?>"],input[value="Done"]').not('input.lock').val("<?=_('Reset')?>").prop('onclick',null).off('click').click(function(){formHasUnsavedChanges=false;refresh(form.offset().top);});
@@ -1232,6 +1222,40 @@ $('body').on('click','a,.ca_href', function(e) {
     }
   }
 });
+
+// Start & stop live updates when window loses focus
+var nchanPaused = false;
+<? if ( $display['liveUpdate'] == "no" ):?>
+$(window).focus(function() {
+  if (nchanPaused !== false ) {
+    removeBannerWarning(nchanPaused);
+    nchanPaused = false;
+    subscribers.forEach(function(e) {
+      e.start();
+    });
+  }   
+});
+
+$(window).blur(function() {
+  if ( subscribers.length ) {
+    if ( nchanPaused === false ) {
+      var newsub = subscribers;
+      subscribers.forEach(function(e) {
+        try {
+          e.stop();
+        } catch {
+          newsub.splice(newsub.indexOf(e,1));
+        }
+      });
+      subscribers = newsub;
+      if ( subscribers.length ) {
+        nchanPaused = addBannerWarning("<?=_('Live Updates Paused');?>",false,true );
+      }
+    }
+  }
+});
+<?endif;?>
 </script>
+<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>
 </body>
 </html>
