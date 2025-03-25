@@ -118,13 +118,18 @@ $fans       = exec("sensors -uA 2>/dev/null|grep -c 'fan[0-9]_input'");
 $autofan    = is_executable("$docroot/plugins/dynamix.system.autofan/scripts/rc.autofan");
 $group      = _var($var,'shareSMBEnabled')=='yes' | _var($var,'shareNFSEnabled')=='yes';
 $names      = [];
-$cache_only = $encrypted = 0;
+$SMBpublic = $NFSpublic= 0;
 
-foreach ($shares as $share) {
-  if ($share['useCache']=='only') $cache_only++;
-  if ($share['luksStatus']>0) $encrypted++;
+foreach ($sec as $share => $prop) {
+  if ( $prop['export'] == "-") continue;
+  if ( $prop['security'] == "public") $SMBpublic++;
+  if ( ! isset($shares[$share]) && isset($disks[$share]) ) {$shares[$share]=$disks[$share]; $shares[$share]['diskexport'] = true;}
 }
-
+foreach ($sec_nfs as $share => $prop) {
+  if ( $prop['export'] == "-") continue;
+  if ( $prop['security'] == "public") $NFSpublic++;
+  if ( ! isset($shares[$share]) && isset($disks[$share]) ) {$shares[$share]=$disks[$share]; $shares[$share]['diskexport'] = true;}
+}
 $passwd = $nopass = 0;
 foreach ($users as $user) if ($user['passwd']=='yes') $passwd++; else $nopass++;
 
@@ -457,7 +462,7 @@ echo "</td></tr>";
 </select></span>
 <?endif;?>
 <br><span>
-<?=sprintf(_("Share count: %s with %s cache only and %s encrypted"),count($shares),$cache_only,$encrypted)?>
+<?=sprintf(_("Share count: %s with %s public SMB and %s public NFS"),count($shares),$SMBpublic,$NFSpublic)?>
 </span><br></div>
 <a href='/Shares' title="_(Go to Share settings)_"><i class='fa fa-fw fa-cog control'></i></a>
 </td></tr>
@@ -466,9 +471,9 @@ echo "</td></tr>";
 if (_var($var,'shareSMBEnabled')=='yes') {
   $i = 0;
   foreach ($shares as $name => $share) {
-    $list = "<a href=\"/Dashboard/Shares/Share?name=".urlencode($name)."\" class=\"blue-text\" title=\"$name settings\">$name</a>";
-    if ($share['luksStatus']>0) $list = str_replace('blue-text','green-text',$list);
-    elseif ($share['useCache']=='only') $list = str_replace('blue-text','orange-text',$list);
+    $list = "<a href=\"/Dashboard/Shares/".(isset($share['diskexport']) ? "Disk" : "Share")."?name=".urlencode($name)."\" class=\"blue-text\" title=\"$name settings\">$name</a>";
+    if ( ($share['luksStatus']??0)>0) $list = str_replace('blue-text','green-text',$list);
+    elseif ( ($share['useCache']??"")=='only') $list = str_replace('blue-text','orange-text',$list);
     $comment = $share['comment'] ?: '-';
     $security = export_settings(_var($var,'shareSMBEnabled'), $sec[$name]);
     $last = $name==array_key_last($shares) ? ' last' : '';
@@ -478,9 +483,9 @@ if (_var($var,'shareSMBEnabled')=='yes') {
 }
 if (_var($var,'shareNFSEnabled')=='yes') {
   foreach ($shares as $name => $share) {
-    $list = "<a href=\"/Dashboard/Shares/Share?name=".urlencode($name)."\" class=\"blue-text\" title=\"$name settings\">$name</a>";
-    if ($share['luksStatus']>0) $list = str_replace('blue-text','green-text',$list);
-    elseif ($share['useCache']=='only') $list = str_replace('blue-text','orange-text',$list);
+    $list = "<a href=\"/Dashboard/Shares/".(isset($share['diskexport']) ? "Disk" : "Share")."?name=".urlencode($name)."\" class=\"blue-text\" title=\"$name settings\">$name</a>";
+    if ( ($share['luksStatus']??0)>0) $list = str_replace('blue-text','green-text',$list);
+    elseif ( ($share['useCache']??"")=='only') $list = str_replace('blue-text','orange-text',$list);
     $comment = $share['comment'] ?: '-';
     $security = export_settings(_var($var,'shareNFSEnabled'), $sec_nfs[$name]);
     $last = $name==array_key_last($shares) ? ' last' : '';
@@ -490,9 +495,9 @@ if (_var($var,'shareNFSEnabled')=='yes') {
 }
 if (!$group) {
   foreach ($shares as $name => $share) {
-    $list = "<a href=\"/Dashboard/Shares/Share?name=".urlencode($name)."\" class=\"blue-text\" title=\"$name settings\">$name</a>";
-    if ($share['luksStatus']>0) $list = str_replace('blue-text','green-text',$list);
-    elseif ($share['useCache']=='only') $list = str_replace('blue-text','orange-text',$list);
+    $list = "<a href=\"/Dashboard/Shares/".(isset($share['diskexport']) ? "Disk" : "Share")."?name=".urlencode($name)."\" class=\"blue-text\" title=\"$name settings\">$name</a>";
+    if ( ($share['luksStatus']??0)>0) $list = str_replace('blue-text','green-text',$list);
+    elseif ( ($share['useCache']??"")=='only') $list = str_replace('blue-text','orange-text',$list);
     $comment = $share['comment'] ?: '-';
     echo "<tr class='share'><td><span class='w26'><i class='icon-folder f14'></i>$list</span><span class='w44'>".htmlspecialchars($comment)."</span><span class='w18'>-</span><span>-</span></td></tr>";
   }
@@ -816,7 +821,7 @@ var options_cpu = {
   colors:['#ff8c2f'],
   markers:{size:0},
   xaxis:{type:'datetime', range:cpuline-1, labels:{show:false}, axisTicks:{show:false}, axisBorder:{show:false}},
-  yaxis:{max:100, min:0, tickAmount:4, labels:{formatter:function(v,i){return v.toFixed(0)+' %';}, style:{colors:'<?=$color?>'}}, axisBorder:{show:false}, axisTicks:{show:false}},
+  yaxis:{max:100, tickAmount:4, labels:{formatter:function(v,i){return v.toFixed(0)+' %';}, style:{colors:'<?=$color?>'}}, axisBorder:{show:false}, axisTicks:{show:false}},
   grid:{show:true, borderColor:'<?=$grid?>'},
   legend:{show:false}
 };
@@ -1412,7 +1417,11 @@ function contentMgmt() {
     modal: true,
     buttons: {
       "_(Reset)_": function(){
-        cookie = {};
+        delete cookie.db_box1;
+        delete cookie.db_box2;
+        delete cookie.db_box3;
+        delete cookie.inactive_content;
+        delete cookie.hidden_content;
         saveCookie();
         box.dialog('close');
         location.reload();
@@ -1808,7 +1817,6 @@ $(function() {
   $('#cpuline').val(cpuline);
   $('#netline').val(netline);
   $.removeCookie('lockbutton');
-  // remember latest graph values
 });
 
 // Start graphs over again when window back in focus
