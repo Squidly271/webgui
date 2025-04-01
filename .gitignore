@@ -72,3 +72,4 @@ emhttp/plugins/.prettierignore
 emhttp/plugins/.prettierrc
 emhttp/plugins/package-lock.json
 emhttp/plugins/package.json
+emhttp/plugins/pnpm-lock.yaml
