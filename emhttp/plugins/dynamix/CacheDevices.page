@@ -24,7 +24,8 @@ function sharename($share) {
 }
 ?>
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.ui.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix/styles/dynamix-jquery-ui.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/DockerManager.css")?>">
+
 <script>
 function validate(poolname) {
   var valid = /^[a-z]([a-z0-9~._-]*[a-z_-])*$/;
