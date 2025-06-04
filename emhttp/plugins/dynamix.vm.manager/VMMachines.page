@@ -158,8 +158,8 @@ function getisoimageboth(uuid,dev,bus,file,dev2,bus2,file2){
   });
   box.dialog({
     title: "_(Select ISOs for CDROMs)_",
-    height: 530,
-    width: 900,
+    height: 'auto',
+    width: 'auto',
     resizable: false,
     modal: true,
     buttons: {
@@ -188,8 +188,8 @@ function getisoimage(uuid,dev,bus,file){
   });
   box.dialog({
     title: "_(Select ISO)_",
-    height: 530,
-    width: 900,
+    height: 'auto',
+    width: 'auto',
     resizable: false,
     modal: true,
     buttons: {
@@ -486,7 +486,7 @@ $(function() {
 });
 </script>
 
-<div class="TableContainer--widest">
+<div class="TableContainer">
     <table id="kvm_table" class="tablesorter four shift">
         <thead>
             <tr>

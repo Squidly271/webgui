@@ -174,8 +174,7 @@ input[type="reset"],
 input[type="submit"],
 button,
 button[type="button"],
-a.button,
-.sweet-alert button {
+a.button {
     font-family: clear-sans;
     font-size: 1.1rem;
     font-weight: bold;
@@ -213,8 +212,7 @@ a.button,
     input[type="submit"],
     button,
     button[type="button"],
-    a.button,
-    .sweet-alert button {
+    a.button {
         margin: 0;
     }
 }
@@ -236,8 +234,7 @@ input:focus[type="number"],
 input:focus[type="url"],
 input:focus[type="email"],
 input:focus[type="file"],
-textarea:focus,
-.sweet-alert button:focus {
+textarea:focus {
     background-color: var(--focus-input-bg-color);
     outline: 0;
 }
@@ -246,8 +243,7 @@ input:hover[type="reset"],
 input:hover[type="submit"],
 button:hover,
 button:hover[type="button"],
-a.button:hover,
-.sweet-alert button:hover {
+a.button:hover {
     color: var(--hover-button-text-color);
     background: var(--hover-button-background);
 }
@@ -273,8 +269,7 @@ input:active[type="reset"][disabled],
 input:active[type="submit"][disabled],
 button:active[disabled],
 button:active[type="button"][disabled],
-a.button:active[disabled],
-.sweet-alert button[disabled] {
+a.button:active[disabled] {
     opacity: 0.5;
     cursor: default;
     color: var(--disabled-text-color);
@@ -661,9 +656,13 @@ div.title span img {
     #footer {
         grid-template-columns: minmax(0, auto) minmax(0, auto);
         justify-content: space-between;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 10000;
     }
 }
-@media (min-width: 768px) and (min-height: 768px) {
+@media (min-height: 500px) and (orientation: landscape) {
     #footer {
         position: fixed;
         bottom: 0;
@@ -875,16 +874,7 @@ div.title span img {
     -webkit-overflow-scrolling: touch;
 
     table {
-        min-width: 1280px;
-    }
-}
-
-.TableContainer--widest {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-
-    table {
-        min-width: 1345px;
+        min-width: 1000px;
     }
 }
 
@@ -1362,7 +1352,6 @@ a.list {
 
     /* Remove padding for forms inside TableContainer elements */
     .TableContainer form:first-of-type,
-    .TableContainer--widest form:first-of-type,
     .TableContainer--no-min-width form:first-of-type {
         padding-top: 0;
     }
@@ -1378,8 +1367,15 @@ a.list {
     gap: 1rem;
     margin-top: 2rem;
     box-sizing: border-box;
-    justify-content: start;
+    justify-content: center;
 }
+
+@media (min-width: 769px) {
+    .Panels {
+        justify-content: start;
+    }
+}
+
 .Panel {
     position: relative;
     text-align: center;
@@ -2092,8 +2088,7 @@ div#title.ud {
     input[type="submit"],
     button,
     button[type="button"],
-    a.button,
-    .sweet-alert button {
+    a.button {
         font-family: clear-sans;
         font-size: 1.2rem;
         font-weight: normal;
@@ -2111,8 +2106,7 @@ div#title.ud {
     input:focus[type="url"],
     input:focus[type="email"],
     input:focus[type="file"],
-    textarea:focus,
-    .sweet-alert button:focus {
+    textarea:focus {
         background: none;
         background-color: var(--focus-input-background-color);
         border-color: var(--focus-input-border-color);
@@ -2123,8 +2117,7 @@ div#title.ud {
     input:hover[type="submit"],
     button:hover,
     button:hover[type="button"],
-    a.button:hover,
-    .sweet-alert button:hover {
+    a.button:hover {
         border-color: var(--hover-button-border);
         color: var(--hover-button-text-color);
         background: none;
@@ -2136,8 +2129,7 @@ div#title.ud {
     input:active[type="submit"],
     button:active,
     button:active[type="button"],
-    a.button:active,
-    .sweet-alert button:active {
+    a.button:active {
         border-color: var(--hover-button-border);
         box-shadow: none;
     }
@@ -2154,8 +2146,7 @@ div#title.ud {
     input:active[type="submit"][disabled],
     button:active[disabled],
     button:active[type="button"][disabled],
-    textarea[disabled],
-    .sweet-alert button[disabled] {
+    textarea[disabled] {
         color: var(--disabled-text-color) !important;
         border-color: var(--disabled-input-border-color) !important;
         background: none !important;
