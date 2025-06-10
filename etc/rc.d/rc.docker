@@ -30,15 +30,11 @@ DOCKER_TIMEOUT=$(awk -F'"' '/^DOCKER_TIMEOUT=/{print $2}' $DOCKER_CFG 2>/dev/nul
 
 # network file references
 INI=/var/local/emhttp/network.ini
+STA=/var/local/emhttp/statics.ini
 TMP=/var/tmp/network.tmp
 
 # run & log functions
 . /etc/rc.d/rc.runlog
-
-# return interface index
-index(){
-  cat $SYSTEM/$1/ifindex 2>/dev/null
-}
 
 # return active interface
 active(){
@@ -60,6 +56,19 @@ carrier(){
     [[ $e -gt 1 ]] && sleep 1
   done
   return 1
+}
+
+# add entry to watch list
+add_entry(){
+  rm -f /var/tmp/${1%% *}.down
+  [[ -e $STA ]] && echo "$1" >>$STA
+}
+
+# delete enty from watch list
+del_entry(){
+  touch /var/tmp/$1.down
+  [[ -e $STA ]] && sed -i "/^$1 .*/d" $STA
+  sleep 0.5
 }
 
 # initialize docker settings
@@ -181,11 +190,6 @@ driver(){
 # Custom networks
 network(){
   docker network ls --filter driver="$1" --format='{{.Name}}' 2>/dev/null | grep -P "^[a-z]+$2(\$|\.)" | tr '\n' ' '
-}
-
-# Does the ipv4 address exist?
-ipv4_exist(){
-  ip -4 -br addr show to $2 dev $1 | awk '{print $3;exit}'
 }
 
 # Is container running?
@@ -346,7 +350,7 @@ docker_network_start(){
       SUBNET=; GATEWAY=; SERVER=; RANGE=;
       [[ -z ${!AUTO} || ${!AUTO} =~ "4" ]] && IPV4=$(ip -4 -br addr show scope global primary dev $NETWORK | awk '{print $3;exit}') || IPV4=
       if [[ -n $IPV4 ]]; then
-        SUBNET=$(ip -4 route show to $IPV4 dev $NETWORK | awk '{print $1;exit}')
+        SUBNET=$(ip -4 route show dev $NETWORK | awk '$1 !~ /^default/ {print $1;exit}')
         SERVER=${IPV4%/*}
         DHCP=${NETWORK/./_}
         DHCP=DOCKER_DHCP_${DHCP^^}
@@ -355,9 +359,9 @@ docker_network_start(){
       fi
       SUBNET6=; GATEWAY6=; SERVER6=;
       # get IPv6 address - ignore any /128 networks
-      [[ -z ${!AUTO} || ${!AUTO} =~ "6" ]] && IPV6=$(ip -6 -br addr show scope global primary -deprecated dev $NETWORK | awk -v RS='[[:space:]]+' '(NR>2){print}' | grep -Pvm1 '^.+/128|^$') || IPV6=
+      [[ -z ${!AUTO} || ${!AUTO} =~ "6" ]] && IPV6=$(ip -6 -br addr show scope global primary -deprecated dev $NETWORK | awk -v RS='[[:space:]]+' '(NR>2){print}' | grep -Pvm1 '^f[a-f]|^$') || IPV6=
       if [[ -n $IPV6 ]]; then
-        SUBNET6=$(ip -6 route show to $IPV6 dev $NETWORK | awk '{print $1;exit}')
+        SUBNET6=$(ip -6 route show dev $NETWORK | awk '$1 !~ /^(default|f[a-f])/ {print $1;exit}')
         SERVER6=${IPV6%/*}
         GATEWAY6=$(ip -6 route show to default dev $NETWORK | awk '{print $3;exit}')
         # replace link local address for first address in subnet
@@ -419,43 +423,53 @@ docker_network_start(){
       done
       # hack to let containers talk to host
       if [[ $TYPE == br ]]; then
-        LINK=shim-$NETWORK
+        SHIM=shim-$NETWORK
         if [[ $DOCKER_ALLOW_ACCESS == yes && -n $IPV4 ]]; then
-          IPV4="$IPV4 metric $((1000 - 1 + $(index $NETWORK)))"
           # create shim interface
-          [[ -e $SYSTEM/$LINK ]] || run ip link add link $NETWORK name $LINK type $ATTACH mode $MODE
+          if [[ ! -e $SYSTEM/$SHIM ]]; then
+            run ip link add link $NETWORK name $SHIM type $ATTACH mode $MODE
+            run ip link set $SHIM up
+          fi
           # disable IPv6 on shim interface
-          echo 1 >$CONF6/$LINK/disable_ipv6
-          run ip -6 addr flush dev $LINK
+          echo 1 >$CONF6/$SHIM/disable_ipv6
+          run ip -6 addr flush dev $SHIM
           # copy parent IPv4 address to shim interface
-          run ip addr add $IPV4 dev $LINK
-          run ip link set $LINK up
-          log "created network $LINK for host access"
-        elif [[ -e $SYSTEM/$LINK ]]; then
-          # remove shim interface
-          run ip addr flush dev $LINK
-          run ip link set $LINK down
-          run ip link del $LINK
+          run ip -4 addr add $IPV4 dev $SHIM metric 0
+          add_entry "$SHIM $IPV4 metric 0"
+          GW4=$(ip -4 route show to default dev $NETWORK | awk '{print $3;exit}')
+          if [[ -n $GW4 ]]; then
+            run ip -4 route add default via $GW4 dev $SHIM metric 0
+            add_entry "$SHIM GW4 default via $GW4 metric 0"
+          fi
+          log "created network $SHIM for host access"
+        elif [[ -e $SYSTEM/$SHIM ]]; then
+          # remove shim interface assignment
+          del_entry $SHIM
+          run ip -4 addr del $IPV4 dev $SHIM metric 0
         fi
       else
         if [[ $TYPE == wlan ]]; then
           VHOST=shim-$NETWORK
-          INDEX=3000
         else
           VHOST=vhost${NETWORK//[^0-9.]/}
-          INDEX=1000
         fi
-        INDEX=$(($INDEX - 1 + $(index $NETWORK)))
         if [[ -n $IPV4 && $DOCKER_ALLOW_ACCESS == yes ]]; then
           # disable IPv6 on vhost interface
           echo 1 >$CONF6/$VHOST/disable_ipv6
           run ip -6 addr flush dev $VHOST
           # copy parent IPv4 address to vhost interface
-          [[ -z $(ipv4_exist $VHOST ${IPV4%/*}) ]] && run ip addr add $IPV4 metric $INDEX dev $VHOST
+          run ip -4 addr add $IPV4 dev $VHOST metric 0
+          add_entry "$VHOST $IPV4 metric 0"
+          GW4=$(ip -4 route show to default dev $NETWORK | awk '{print $3;exit}')
+          if [[ -n $GW4 ]]; then
+            run ip -4 route add default via $GW4 dev $VHOST metric 0
+            add_entry "$VHOST GW4 default via $GW4 metric 0"
+          fi
           log "created network $VHOST for host access"
-        elif [[ -n $IPV4 && -e $SYSTEM/$VHOST && -n $(ipv4_exist $VHOST ${IPV4%/*}) ]]; then
-          # remove parent IPv4 address from vhost interface
-          run ip addr del $IPV4 metric $INDEX dev $VHOST
+        elif [[ -n $IPV4 && -e $SYSTEM/$VHOST ]]; then
+          # remove vhost interface assignment
+          del_entry $VHOST
+          run ip -4 addr del $IPV4 dev $VHOST metric 0
         fi
       fi
     fi
@@ -477,25 +491,24 @@ docker_network_stop(){
     [[ ${NIC:0:3} == eth ]] && NIC=$(active $NIC)
     driver ${NIC//[0-9]/} forced
     for NETWORK in $(network $ATTACH ${NIC//[^0-9]/}); do
+      IPV4=$(ip -4 -br addr show scope global primary dev $NETWORK | awk '{print $3;exit}')
       [[ $STOCK =~ ${NETWORK%%[0-9]*} || $DOCKER_USER_NETWORKS != preserve ]] && docker network rm $NETWORK &>/dev/null
       TYPE=${NETWORK//[0-9.]/}
-      if [[ $TYPE == br ]]; then
-        LINK=shim-$NETWORK
-        if [[ -e $SYSTEM/$LINK ]]; then
-          run ip addr flush dev $LINK
-          run ip link set $LINK down
-          run ip link del $LINK
+      if [[ $TYPE == br || $TYPE == wlan ]]; then
+        SHIM=shim-$NETWORK
+        if [[ -e $SYSTEM/$SHIM ]]; then
+          del_entry $SHIM
+          run ip -4 addr del $IPV4 dev $SHIM metric 0
         fi
-      elif [[ $TYPE != wlan ]]; then
+      else
         VHOST=vhost${NETWORK//[^0-9.]/}
-        [[ -e $SYSTEM/$VHOST ]] && run ip addr flush dev $VHOST
+        if [[ -e $SYSTEM/$VHOST ]]; then
+          del_entry $VHOST
+          run ip -4 addr del $IPV4 dev $VHOST metric 0
+        fi
       fi
     done
   done
-  if [[ -e $SYSTEM/shim-wlan0 ]]; then
-    IPV4=$(ip -4 -br addr show scope global primary dev shim-wlan0 | awk '{print $3,$4,$5;exit}')
-    [[ -n $IPV4 ]] && run ip addr del $IPV4 dev shim-wlan0
-  fi
   log "Network stopped."
 }
 

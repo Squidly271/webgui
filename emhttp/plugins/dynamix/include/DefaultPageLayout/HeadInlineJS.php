@@ -220,7 +220,7 @@ function openPlugin(cmd,title,plg,func,start=0,button=0) {
       $(".upgrade_notice").addClass('alert');
       return;
     }
-    swal({title:title,text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button==0,confirmButtonText:"<?=_('Close')?>"},function(close){
+    swal({title:title + ' - <span id="pluginProgressTitle"><?=_('In Progress');?> <i class="fa fa-refresh fa-spin"></i></span>',text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button==0,confirmButtonText:"<?=_('Close')?>"},function(close){
       nchan_plugins.stop();
       $('div.spinner.fixed').hide();
       $('.sweet-alert').hide('fast').removeClass('nchan');
@@ -244,7 +244,7 @@ function openDocker(cmd,title,plg,func,start=0,button=0) {
       $(".upgrade_notice").addClass('alert');
       return;
     }
-    swal({title:title,text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button!=0,confirmButtonText:"<?=_('Close')?>"},function(close){
+    swal({title:title + ' - <span id="pluginProgressTitle"><?=_('In Progress');?> <i class="fa fa-refresh fa-spin"></i></span>',text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button!=0,confirmButtonText:"<?=_('Close')?>"},function(close){
       nchan_docker.stop();
       $('div.spinner.fixed').hide();
       $('.sweet-alert').hide('fast').removeClass('nchan');
