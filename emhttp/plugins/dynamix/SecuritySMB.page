@@ -31,7 +31,7 @@ _(Read settings from)_ <i class="fa fa-arrow-left fa-fw"></i>
 		<option disabled selected>_(select)_...</option>
 		<?
 		if (isset($disks[$name])) {
-		  foreach (array_filter($disks,'clone_list') as $list) if ($list['name']!=$name) echo mk_option("", $list['name'], _(my_disk($list['name']),3));
+		  foreach (array_filter($disks,'clone_list') as $list) if ($list['name']!=$name) echo mk_option("", $list['name'], __(my_disk($list['name']),3));
 		} else {
 		  foreach ($shares as $list) if ($list['name']!=$name) echo mk_option("", $list['name'], compress($list['name']));
 		}
@@ -48,7 +48,7 @@ _(Write settings to)_ <i class="fa fa-arrow-right fa-fw"></i>
 		<?
 		$rows = [];
 		if (isset($disks[$name])) {
-		  foreach (array_filter($disks,'clone_list') as $list) if ($list['name']!=$name) $rows[] = mk_option("", $list['name'], _(my_disk($list['name']),3));
+		  foreach (array_filter($disks,'clone_list') as $list) if ($list['name']!=$name) $rows[] = mk_option("", $list['name'], __(my_disk($list['name']),3));
 		} else {
 		  foreach ($shares as $list) if ($list['name']!=$name) $rows[] = mk_option("", $list['name'], compress($list['name']));
 		}

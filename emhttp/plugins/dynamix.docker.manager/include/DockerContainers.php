@@ -112,7 +112,7 @@ function my_lang_log($text) {
     [$t1,$t2] = my_explode(') ',$text);
     return $t1.'): '.my_lang_time($t2);
   }
-  return _(_($text),2);
+  return __(__($text),2);
 }
 foreach ($containers as $ct) {
   $name = $ct['Name'];
@@ -347,7 +347,7 @@ foreach ($images as $image) {
   echo "<span class='outer apps'><span id='$id' $menu class='hand'><img src='/webGui/images/disk.png' class='img'></span><span class='inner'>("._('orphan image').")<br><i class='fa fa-square stopped grey-text'></i><span class='state'>"._('stopped')."</span></span></span>";
   echo "</td><td colspan='6'>"._('Image ID').": $id<br>";
   echo implode(', ',$image['Tags']);
-  echo "</td><td>"._('Created')." ".htmlspecialchars(_($image['Created'],0))."</td></tr>";
+  echo "</td><td>".__('Created')." ".htmlspecialchars(__($image['Created'],0))."</td></tr>";
 }
 echo "\0".implode($docker)."\0".(pgrep('rc.docker')!==false ? 1:0);
 ?>

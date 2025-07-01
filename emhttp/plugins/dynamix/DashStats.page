@@ -139,7 +139,7 @@ $serial   = _("s/n").": ".($board['Serial Number'] ?? "--");
 $board    = ($board['Manufacturer'] ?? "").' '.($board['Product Name'] ?? "").' '.(isset($board['Version']) ? ", "._("Version")." ".$board['Version'] : "");
 
 $bios     = dmidecode('BIOS Information','0',0);
-$biosdate = _("BIOS dated").": "._(my_time(strtotime($bios['Release Date'] ?? ""),$display['date']),0);
+$biosdate = _("BIOS dated").": ".__(my_time(strtotime($bios['Release Date'] ?? ""),$display['date']),0);
 $bios     = $bios['Vendor'].(isset($bios['Version']) ? ", "._("Version")." ".$bios['Version'] : "");
 
 $cpu      = dmidecode('Processor Information','4',0);
@@ -1138,7 +1138,7 @@ switch ($themeHelper->getThemeName()) { // $themeHelper set in DefaultPageLayout
                                     <span class='tile-header-left'>
                                         <i class='icon-disk f32'></i>
                                         <div class='section'>
-                                            <h3 class='tile-header-main'><?=_(native($pool),3).($started ? '' : ' ('._('stopped').')')?></h3>
+                                            <h3 class='tile-header-main'><?=__(native($pool),3).($started ? '' : ' ('._('stopped').')')?></h3>
                                             <span>
                                                 <?if ($started):?>
                                                     <?=sprintf(_("%s used of %s (%s %%)"),my_scale($cache_used[$pool]*1024,$unit)." $unit",my_scale($cache_size[$pool]*1024,$unit,-1,-1)." $unit",$cache_rate[$pool])?>

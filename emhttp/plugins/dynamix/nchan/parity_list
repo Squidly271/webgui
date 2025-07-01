@@ -92,10 +92,10 @@ while (true) {
 		create_file($resync, _var($var, 'mdResyncAction'), $size);
 
 		$echo[] = my_scale($size * 1024, $unit, -1) . " $unit";
-		$echo[] = _(my_clock(floor((time() - $sbSynced) / 60)), 2) . ($delta ? '' : ' (' . _('paused') . ')');
+		$echo[] = __(my_clock(floor((time() - $sbSynced) / 60)), 2) . ($delta ? '' : ' (' . __('paused') . ')');
 		$echo[] = my_scale($spot * 1024, $unit) . " $unit (" . number_format($spot / ($size / 100 + 1), 1, $dot, '') . " %)";
 		$echo[] = $delta ? my_scale($bytes * 1024 / $delta, $unit, 1) . " $unit/sec" : '---';
-		$echo[] = $bytes ? _(my_clock(round(((($delta * (($size - $spot) / ($bytes / 100 + 1))) / 100) / 60), 0)), 2) : _('Unknown');
+		$echo[] = $bytes ? __(my_clock(round(((($delta * (($size - $spot) / ($bytes / 100 + 1))) / 100) / 60), 0)), 2) : __('Unknown');
 		$echo[] = $var['sbSyncErrs'];
 	} elseif (_var($var, 'sbSynced') && _var($var, 'sbSynced2')) {
 		$timestamp = str_replace(['.0', '.'], ['  ', ' '], date('Y.M.d H:i:s', $var['sbSynced2']));

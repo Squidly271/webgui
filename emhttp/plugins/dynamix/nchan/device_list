@@ -55,7 +55,7 @@ function device_info(&$disk,$online) {
   }
   $name   = _var($disk,'name');
   $named  = no_tilde($name);
-  $fancy  = _(my_disk(native($name,1)),3);
+  $fancy  = __(my_disk(native($name,1)),3);
   $type   = _var($disk,'type');
   $source = $type=='Flash' ? $type : 'Device';
   $parity = $type=='Parity';

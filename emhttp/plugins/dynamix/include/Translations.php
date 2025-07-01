@@ -24,7 +24,7 @@ if (file_exists($session)) {
   if (filesize($session)===0 || (count($_SESSION??[])==1 && isset($_SESSION['locale']))) unlink($session);
 }
 
-function _($text, $do=-1) {
+function __($text, $do=-1) {
   // PHP translation function _
   global $language;
   $text = trim($text);
@@ -47,6 +47,7 @@ function _($text, $do=-1) {
     [$p1,$p2] = array_pad(preg_split('/(?<=[a-z])(?= ?[0-9]+)/i',$text),2,'');
     return _($p1).$p2;
   default: // regular translation
+    return gettext($text);
     $text = $language[preg_replace(['/\&amp;|[\?\{\}\|\&\~\!\[\]\(\)\/\\:\*^\.\"\']|<.+?\/?>/','/^(null|yes|no|true|false|on|off|none)$/i','/  +/'],['','$1.',' '],$text)] ?? $text;
     return preg_replace(['/\*\*(.+?)\*\*/','/\*(.+?)\*/',"/'/"],['<b>$1</b>','<i>$1</i>','&apos;'],$text);
   }

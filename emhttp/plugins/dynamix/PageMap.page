@@ -17,13 +17,12 @@ Tag="map-o"
 ?>
 <?if (_var($display,'resize')):?>
 <script>
+function resize() {
+  $('div.up').height(Math.max(window.innerHeight-320,330));
+}
 $(function() {
-  fillAvailableHeight({
-    targetElementSelector: '.js-fill-available-height',
-    elementSelectorsForHeight: [
-      '.js-actions',
-    ],
-  });
+  resize();
+  $(window).bind('resize',function(){resize();});
 });
 </script>
 <?endif;?>
@@ -58,15 +57,10 @@ foreach($uri as $more) {
     $language = array_merge($language,unserialize(file_get_contents($store)));
   }
 }
+
+echo "<div class='up'>";
+show_map("Tasks", 1);
+show_map("Buttons", 1);
+echo "</div>";
 ?>
-
-<div class="js-fill-available-height up">
-  <?
-  show_map("Tasks", 1);
-  show_map("Buttons", 1);
-  ?>
-</div>
-
-<div class="js-actions">
-  <input type="button" value="_(Done)_" onclick="done()">
-</div>
+<input type="button" value="_(Done)_" onclick="done()">

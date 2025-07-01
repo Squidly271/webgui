@@ -492,7 +492,7 @@ const displayOptions = <?= json_encode($arrDisplayOptions, JSON_HEX_TAG | JSON_H
 	<tr class="advanced">
 		<td><span class="advanced">_(CPU)_ </span>_(Mode)_:</td>
 		<td>
-			<span class="width"><select id="cpu" name="domain[cpumode]" class="cpu">
+			<span class="width"><select id="cpu" name="domain[cpumode]" class="cpu narrow">
 			<?mk_dropdown_options(['host-passthrough' => _('Host Passthrough').' ('.$strCPUModel.')', 'custom' => _('Emulated').' ('._('QEMU64').')'], $arrConfig['domain']['cpumode']);?>
 			</select></span>
 			<span class="advanced label <?=$migratehidden?>" id="domain_cpumigrate_text">_(Migratable)_:</span>

@@ -1294,7 +1294,6 @@ a.list {
     position: relative;
     width: 100%;
     box-sizing: border-box;
-    overflow-x: auto; /* Allows unresponsive set width legacy content to scroll horizontally as needed. */
 
     /**
     * Force remove any small empty space elements.
@@ -1310,11 +1309,6 @@ a.list {
             min-height: 0 !important;
         }
     }
-}
-
-/* Necessary evil to prevent rewrites of complex page templates for responsive layout - i.e. VMedit.php */
-.Content--non-responsive {
-    min-width: 1200px;
 }
 
 .tabs {

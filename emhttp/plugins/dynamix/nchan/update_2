@@ -151,7 +151,7 @@ function device_name(&$disk) {
     case 'Cache' : $type = _var($disk,'rotational') ? (_var($disk,'luksState') ? 'disk-encrypted' : 'disk') : 'nvme'; break;
   }
   $name = _var($disk,'name');
-  $fancy = _(my_disk(native($name,1)),3);
+  $fancy = __(my_disk(native($name,1)),3);
   return "<i class='icon-$type f14'></i> <a href=\"".htmlspecialchars("/Dashboard/Main/Settings/Device?name=$name")."\" title=\"$fancy settings\">$fancy</a>";
 }
 
@@ -393,8 +393,8 @@ while (true) {
   $sbSynced = array_shift($synced) ?: _var($var,'sbSynced');
   $sbUpdate = $delta ? $sbSynced : _var($var,'sbUpdated');
   if ($spot) {
-    $echo[$a][] = sprintf(_('Current operation %s on **%s**'),($delta?_('started'):_('paused')),_(my_time($sbUpdate).day_count($sbUpdate),0));
-    $echo[$a][] = "<i class='fa fa-fw fa-clock-o'></i> "._('Elapsed time').": "._(my_clock(floor((time()-$sbSynced)/60)),2)."<br><i class='fa fa-fw fa-flag-checkered'></i> "._('Estimated finish').': '.($bytes ? _(my_clock(round(((($delta*(($size-$spot)/($bytes/100+1)))/100)/60),0)),2) : _('Unknown'))."<br><i class='fa fa-fw fa-search'></i> ".print_error(_var($var,'sbSyncErrs',0));
+    $echo[$a][] = sprintf(__('Current operation %s on **%s**'),($delta?__('started'):__('paused')),__(my_time($sbUpdate).day_count($sbUpdate),0));
+    $echo[$a][] = "<i class='fa fa-fw fa-clock-o'></i> ".__('Elapsed time').": ".__(my_clock(floor((time()-$sbSynced)/60)),2)."<br><i class='fa fa-fw fa-flag-checkered'></i> ".__('Estimated finish').': '.($bytes ? __(my_clock(round(((($delta*(($size-$spot)/($bytes/100+1)))/100)/60),0)),2) : __('Unknown'))."<br><i class='fa fa-fw fa-search'></i> ".print_error(_var($var,'sbSyncErrs',0));
   } else {
     [$date,$duration,$speed,$status,$error,$action,$size] = last_parity_log();
     if (_var($var,'sbSyncExit',0)!=0) {
@@ -405,11 +405,11 @@ while (true) {
       if (!$date) {
         $echo[$a][] = _('Parity has not been checked yet');
       } elseif ($status==0) {
-        $echo[$a][] = sprintf(_('Last checked on **%s**'),_(my_time($date).day_count($date),0));
+        $echo[$a][] = sprintf(__('Last checked on **%s**'),__(my_time($date).day_count($date),0));
         $echo[$a][] = "<br><i class='fa fa-fw fa-clock-o'></i> "._('Duration').": ".my_check($duration,$speed);
         $echo[$a][] = "<br><i class='fa fa-fw fa-search'></i> ".print_error($error);
       } else {
-        $echo[$a][] = sprintf(_('Last check incomplete on **%s**'),_(my_time($date).day_count($date),0));
+        $echo[$a][] = sprintf(__('Last check incomplete on **%s**'),__(my_time($date).day_count($date),0));
         $echo[$a][] = "<br><i class='fa fa-fw fa-dot-circle-o'></i> "._('Error code').": ".my_error($status);
         $echo[$a][] = "<br><i class='fa fa-fw fa-search'></i> ".print_error($error);
       }
@@ -492,7 +492,7 @@ while (true) {
     }
     if ($check) {
       $frmt = _var($display,'date').(_var($display,'date')!='%c' ? ", "._var($display,'time') : "");
-      $extra = sprintf(_('Next check scheduled on **%s**'),_(my_date($frmt,$time+$t),0))."<br><i class='fa fa-fw fa-clock-o'></i> "._('Due in').": "._(my_clock(floor($t/60)),2);
+      $extra = sprintf(__('Next check scheduled on **%s**'),__(my_date($frmt,$time+$t),0))."<br><i class='fa fa-fw fa-clock-o'></i> ".__('Due in').": ".__(my_clock(floor($t/60)),2);
     } else {
       $extra = _('Scheduled parity check is disabled');
     }

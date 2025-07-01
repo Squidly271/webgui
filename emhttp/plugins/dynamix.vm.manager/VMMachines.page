@@ -123,6 +123,15 @@ if (empty($vms)) {
 <script src="<?autov('/plugins/dynamix.vm.manager/javascript/vmmanager.js')?>"></script>
 <script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
 <script>
+<?if (_var($display,'resize')):?>
+function resize() {
+  $('#kvm_list').height(Math.max(window.innerHeight-340,330));
+  $('#kvm_table thead,#kvm_table tbody').removeClass('fixed');
+  $('#kvm_table thead tr th').each(function(){$(this).width($(this).width());});
+  $('#kvm_table tbody tr td').each(function(){$(this).width($(this).width());});
+  $('#kvm_table thead,#kvm_table tbody').not('.child').addClass('fixed');
+}
+<?endif;?>
 function resetSorting() {
   if ($.cookie('lockbutton')==null) return;
   $('input[type=button]').prop('disabled',true);
@@ -437,6 +446,10 @@ function loadlist() {
     var data = d.split(/\0/);
     $('#kvm_list').html(data[0]);
     $('head').append('<script>'+data[1]+'<\/script>');
+<?if (_var($display,'resize')):?>
+    resize();
+    $(window).bind('resize',function(){resize();});
+<?endif;?>
 <?foreach ($vms as $vm) {
   $res = $lv->get_domain_by_name($vm);
   $uuid = $lv->domain_get_uuid($res);
@@ -461,30 +474,6 @@ function loadlist() {
     $('input[type=button]').prop('disabled',false).show('slow');
     $('.text').click(showInput);
     $('.input').blur(hideInput);
-    <?if (_var($display,'resize')):?>
-      fillAvailableHeight({
-        targetElementSelector: '.js-fill-available-height',
-        elementSelectorsForHeight: [
-          '.js-actions',
-          '#kvm_table thead',
-        ],
-        elementSelectorsForSpacing: [
-          '#kvm_table',
-        ],
-        manualSpacingOffset: 30, // without this, the main content will still be scrollable by like 20px
-      });
-      // Handle table header fixed positioning after resize
-      function tableHeaderResize() {
-        $('#kvm_table thead,#kvm_table tbody').removeClass('fixed');
-        $('#kvm_table thead tr th').each(function(){$(this).width($(this).width());});
-        $('#kvm_table tbody tr td').each(function(){$(this).width($(this).width());});
-        $('#kvm_table thead,#kvm_table tbody').not('.child').addClass('fixed');
-      }
-      tableHeaderResize();
-      $(window).bind('resize',function(){
-        tableHeaderResize();
-      });
-  <?endif;?>
   });
 }
 $(function() {
@@ -512,15 +501,13 @@ $(function() {
                 <th class="th3">_(Autostart)_</th>
             </tr>
         </thead>
-        <tbody id="kvm_list" class="js-fill-available-height"><tr><td colspan='8'></td></tr></tbody>
+        <tbody id="kvm_list"><tr><td colspan='8'></td></tr></tbody>
     </table>
 </div>
 
-<div class="js-actions">
-  <input type="button" onclick="addVM()" id="btnAddVM" value="_(Add VM)_" style="display:none">
-  <input type="button" onclick="startAll()" value="_(Start All)_" style="display:none">
-  <input type="button" onclick="stopAll()" value="_(Stop All)_" style="display:none">
-</div>
+<input type="button" onclick="addVM()" id="btnAddVM" value="_(Add VM)_" style="display:none">
+<input type="button" onclick="startAll()" value="_(Start All)_" style="display:none">
+<input type="button" onclick="stopAll()" value="_(Stop All)_" style="display:none">
 
 <div id="dialogWindow"></div>
 <div id="iframe-popup"></div>

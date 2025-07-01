@@ -307,7 +307,7 @@ foreach ($shares as $name => $share) {
 			$include = $share['include'];
 			$inside = in_array($diskname, array_filter(array_diff($myDisks, explode(',', $share['exclude'])), 'shareInclude'));
 			echo "<tr class='", ($inside ? "'>" : "warning'>");
-			echo "<td><a class='view'></a><a href='#' title='", _('Recompute'), "...' onclick=\"computeShare('", rawurlencode($name), "',$(this).parent())\"><i class='fa fa-refresh icon'></i></a>&nbsp;", _(my_disk($diskname, $display['raw']), 3), "</td>";
+			echo "<td><a class='view'></a><a href='#' title='", _('Recompute'), "...' onclick=\"computeShare('", rawurlencode($name), "',$(this).parent())\"><i class='fa fa-refresh icon'></i></a>&nbsp;", __(my_disk($diskname, $display['raw']), 3), "</td>";
 			echo "<td>", ($inside ? "" : "<em>"._('Share is outside the list of designated disks')."</em>"), "</td>";
 			echo "<td></td>";
 			echo "<td></td>";

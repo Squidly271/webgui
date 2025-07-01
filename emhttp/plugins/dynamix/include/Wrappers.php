@@ -52,24 +52,8 @@ function parse_plugin_cfg($plugin, $sections=false, $scanner=INI_SCANNER_NORMAL)
   global $docroot;
   $ram = "$docroot/plugins/$plugin/default.cfg";
   $rom = "/boot/config/plugins/$plugin/$plugin.cfg";
-  
-  $cfg_ram = [];
-  if (file_exists($ram)) {
-    $cfg_ram = my_parse_ini_file($ram, $sections, $scanner);
-    if ($cfg_ram === false) {
-      my_logger("Failed to parse config file: $ram", 'webgui');
-      $cfg_ram = [];
-    }
-  }
-  $cfg_rom = [];
-  if (file_exists($rom)) {
-    $cfg_rom = my_parse_ini_file($rom, $sections, $scanner);
-    if ($cfg_rom === false) {
-      my_logger("Failed to parse config file: $rom", 'webgui');
-      $cfg_rom = [];
-    }
-  }
-  return !empty($cfg_rom) ? array_replace_recursive($cfg_ram, $cfg_rom) : $cfg_ram;
+  $cfg = file_exists($ram) ? my_parse_ini_file($ram, $sections, $scanner) : [];
+  return file_exists($rom) ? array_replace_recursive($cfg, my_parse_ini_file($rom, $sections, $scanner)) : $cfg;
 }
 
 function parse_cron_cfg($plugin, $job, $text = "") {

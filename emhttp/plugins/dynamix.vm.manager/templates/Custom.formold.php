@@ -393,7 +393,7 @@
 						// skip this disk based on local and global share settings
 						continue;
 					}
-					$strLabel = _(my_disk($name),3).' - '.my_scale($disk['fsFree']*1024, $strUnit).' '.$strUnit.' '._('free');
+					$strLabel = __(my_disk($name),3).' - '.my_scale($disk['fsFree']*1024, $strUnit).' '.$strUnit.' '.__('free');
 					echo mk_option($default_storage, $name, $strLabel);
 				}
 			}

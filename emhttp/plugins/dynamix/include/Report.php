@@ -18,12 +18,11 @@ require_once "$docroot/webGui/include/Wrappers.php";
 switch ($_POST['cmd']??'') {
 case 'config':
   $config = "/boot/config";
-  $files  = ['disk:0:0','docker:1:0','domain:1:0','flash:0:0','ident:1:0','share:0:0','dynamix:0:1']; // config files to check
+  $files  = ['disk:0','docker:1','domain:1','flash:0','ident:1','share:0']; // config files to check
   foreach ($files as $file) {
-    [$name,$need,$plugin] = explode(':',$file);
-    $filename = $plugin ? "$config/plugins/$name/$name.cfg" : "$config/$name.cfg";
+    [$name,$need] = explode(':',$file);
     for ( $i=0;$i<2;$i++) {
-      if (($need && !file_exists($filename)) || (file_exists($filename) && !@parse_ini_file($filename))) {
+      if (($need && !file_exists("$config/$name.cfg")) || (file_exists("$config/$name.cfg") && !@parse_ini_file("$config/$name.cfg"))) {
         $flag = 1;
         sleep(1);
       } else {

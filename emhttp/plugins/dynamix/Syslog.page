@@ -3,7 +3,7 @@ Title="System Log"
 Icon="icon-log"
 Tag="list"
 ---
-<?php
+<?PHP
 /* Copyright 2005-2023, Lime Technology
  * Copyright 2012-2023, Bergware International.
  *
@@ -15,8 +15,8 @@ Tag="list"
  * all copies or substantial portions of the Software.
  */
 ?>
-<?php
-$zip    = htmlspecialchars(str_replace(' ', '_', strtolower($var['NAME'])));
+<?
+$zip    = htmlspecialchars(str_replace(' ','_',strtolower($var['NAME'])));
 $log    = '/var/log/syslog';
 $prev   = '/boot/logs/syslog-previous';
 $cfg    = '/boot/config/rsyslog.cfg';
@@ -24,23 +24,21 @@ $max    = 5000;
 $select = [];
 $logs   = [];
 if (file_exists($cfg)) {
-    $syslog = parse_ini_file($cfg);
-    if (!empty($syslog['local_server']) && !empty($syslog['server_folder']) && $logs = glob($syslog['server_folder'].'/syslog-*.log', GLOB_NOSORT)) {
-        natsort($logs);
-    }
+  $syslog = parse_ini_file($cfg);
+  if (!empty($syslog['local_server']) && !empty($syslog['server_folder']) && $logs = glob($syslog['server_folder'].'/syslog-*.log',GLOB_NOSORT)) {
+    natsort($logs);
+  }
 }
 if (file_exists($prev)) {
-    // add syslog-previous to front of logs array
-    array_unshift($logs, $prev);
+  // add syslog-previous to front of logs array
+  array_unshift($logs, $prev);
 }
 if (count($logs)) {
-    // add syslog to front of logs array
-    array_unshift($logs, $log);
-    $select[] = "<select onchange='showLog(this.value)'>";
-    foreach ($logs as $file) {
-        $select[] = mk_option(1, $file, basename($file));
-    }
-    $select[] = "</select>";
+  // add syslog to front of logs array
+  array_unshift($logs, $log);
+  $select[] = "<select onchange='showLog(this.value)'>";
+  foreach ($logs as $file) $select[] = mk_option(1,$file,basename($file));
+  $select[] = "</select>";
 }
 $select = implode($select);
 ?>
@@ -87,6 +85,11 @@ function toggle(checked) {
   highlight(checked,'L');
   $('span.label input[type=checkbox]').not('.ctrl').prop('checked',checked);
 }
+<?if (_var($display,'resize')):?>
+function resize() {
+  $('pre.up').height(Math.max(window.innerHeight-320,330));
+}
+<?endif;?>
 
 function showLog(log) {
 	logfile = log;
@@ -138,27 +141,22 @@ $(function() {
       showLog(logfile);
     }
   });
+<?if (_var($display,'resize')):?>
+  resize();
+  $(window).bind('resize',function(){resize();});
+<?endif;?>
   showLog(logfile);
-
-  <?if (_var($display,'resize')):?>
-  fillAvailableHeight({
-      targetElementSelector: '.js-fill-available-height',
-      elementSelectorsForHeight: [
-        '.js-syslog-controls',
-        '.js-syslog-actions',
-      ],
-    });
-  <?endif;?>
 });
+// $('.title .right').append("");
 </script>
 
-<div class="js-syslog-controls syslog-controls">
+<div class="syslog-controls">
   <div class="flex flex-row justify-between items-center gap-4 flex-wrap w-full">
     <div class="flex flex-row items-center gap-4">
       <div class="lite label">
         <label class="flex flex-row items-center gap-2">
           <span class="flex-shrink-0">_(Log size)_:</span>
-          <input type="number" id="max" value="" placeholder="<?=$max?>">
+          <input type="number" id="max" value="" placeholder="<?=$max?>" class="w-20">
         </label>
       </div>
 
@@ -219,9 +217,9 @@ $(function() {
   </div>
 </div>
 
-<pre class="js-fill-available-height up"></pre>
+<pre class="up"></pre>
 
-<div class="js-syslog-actions flex flex-row items-center gap-2">
+<div class="flex flex-row items-center gap-2">
   <input type="button" id="download" value="_(Download)_" onclick="syslog(zipfile())">
   <input type="button" value="_(Refresh)_" onclick="showLog(logfile)">
   <input type="button" value="_(Done)_" onclick="done()">

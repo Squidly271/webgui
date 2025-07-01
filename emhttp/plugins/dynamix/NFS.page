@@ -1,4 +1,4 @@
-Menu="NetworkServices:2"
+Menu="NetworkServices:2 MyFavorites"
 Title="NFS"
 Icon="icon-linux"
 Tag="linux"

@@ -165,7 +165,10 @@ if (!empty($username) && !empty($password)) {
 
         // Check if we're limited
         if ($failCount >= $maxFails) {
-            throw new Exception(_('Too many previous login attempts.').'<br>'.sprintf(_('Logins prevented for %s'),'<span id="countdown"></span>'));
+            if ($failCount == $maxFails) {
+                my_logger("Ignoring login attempts for {$username} from {$remote_addr}");
+            }
+            throw new Exception(_('Too many invalid login attempts'));
         }
 
         // Bail if username + password combo doesn't work
@@ -190,17 +193,10 @@ if (!empty($username) && !empty($password)) {
     } catch (Exception $exception) {
         // Set error message
         $error = $exception->getMessage();
-        appendToFile($failFile, $time . "\n");
-        // Log error to syslog
-        $coolReset = "";
-        if ($failCount == ($maxFails - 1)) {
-            $error .= '<br>'.sprintf(_('Logins prevented for %s'),'<span id="countdown"></span>');
-        }
-        if ($failCount >= $maxFails) {
-            $coolReset = "Ignoring login attempts for {$cooldown} seconds.";
-        }
 
-        my_logger("Unsuccessful login user {$username} from {$remote_addr}. {$coolReset}");
+        // Log error to syslog
+        my_logger("Unsuccessful login user {$username} from {$remote_addr}");
+        appendToFile($failFile, $time . "\n");
     }
 }
 
@@ -590,9 +586,9 @@ $isDarkTheme = $themeHelper->isDarkTheme();
                     <p>
                         <button type="submit" class="button button--small"><?= _('Login') ?></button>
                     </p>
-                    <? if ($error): ?>
-                        <p class="error" id="error"><?= $error ?></p>
-                    <? endif; ?>
+                    <?php if ($error) { ?>
+                        <p class="error"><?= $error ?></p>
+                    <?php } ?>
                 </form>
                 <?php include "$docroot/plugins/dynamix.my.servers/include/sso-login.php"; ?>
             </div>
@@ -615,48 +611,6 @@ $isDarkTheme = $themeHelper->isDarkTheme();
             document.body.textContent = '';
             document.body.appendChild(errorElement);
         }
-
-        let timeInSecs;
-        let ticker;
-
-        function startTimer(secs) {
-            timeInSecs = parseInt(secs);
-            ticker = setInterval(tick, 1000); 
-        }
-
-        function tick() {
-            var secs = timeInSecs;
-        
-            updateMessage(prettyTime(secs),"countdown");
-
-            if (secs > 0) {
-                timeInSecs--; 
-            } else {
-                clearInterval(ticker);
-                // remove the error message after 10 seconds after the timer has expired    
-                updateMessage("<?=_("Wait for this message to disappear")?>","error");
-                setTimeout(function() {
-                    updateMessage("","error");
-                }, 10000);
-                return;
-            }
-        }
-        function updateMessage(msg,ID) {
-            var element = document.getElementById(ID);
-            if (element) {
-                element.innerHTML = msg;
-            }
-        }
-        function prettyTime(secs) {
-            var mins = Math.floor(secs/60);
-            secs %= 60;
-            return ( (mins < 10) ? "0" : "" ) + mins + ":" + ( (secs < 10) ? "0" : "" ) + secs;
-        }
-        <? if ($error):?>
-            if ( document.getElementById("countdown") ) {
-                startTimer(<?=$cooldown?>);  
-            }
-        <? endif; ?>
     </script>
 </body>
 

@@ -1,0 +1,11 @@
+#!/bin/bash
+# read cache pools or fallback to legacy /mnt/cache
+if [[ -d /boot/config/pools ]]; then
+  cache=$(ls /boot/config/pools|sed 's:.cfg$::;s:^:/mnt/:')
+else
+  cache=/mnt/cache
+fi
+# stop any open shell which prevents unmounting of array
+for PID in $(lsof /mnt/disk[0-9]* $cache /mnt/user /mnt/user0 2>/dev/null|awk '/^(bash|sh|mc) /{print $2}'); do
+  kill $PID 1>/dev/null 2>&1
+done

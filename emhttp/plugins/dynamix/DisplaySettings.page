@@ -1,4 +1,4 @@
-Menu="UserPreferences"
+Menu="UserPreferences MyFavorites"
 Title="Display Settings"
 Icon="icon-display"
 Tag="desktop"

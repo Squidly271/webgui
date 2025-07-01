@@ -70,7 +70,7 @@ _(Mover schedule)_:
 _(Day of the week)_:
 : <select name="day">
   <?for ($d=0; $d<count($days); $d++):?>
-  <?=mk_option($cron[4], strval($d), _($days[$d],0))?>
+  <?=mk_option($cron[4], strval($d), __($days[$d],0))?>
   <?endfor;?>
   <?=mk_option($cron[4], "*", "--------", "disabled")?>
   </select>

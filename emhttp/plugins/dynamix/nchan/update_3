@@ -157,7 +157,7 @@ while (true) {
   $xdate = _var($display,'date')=='%c';
   $clock = date($xtime||$xdate ? 'g:i '.esc('<span class="ampm">').'a'.esc('</span>') : 'G:i',$now);
   $date  = my_date($xdate ? 'D j M Y, T' : $display['date'].', T',$now);
-  $echo['time'] = [$clock,_($date,0)];
+  $echo['time'] = [$clock,__($date,0)];
 
   $echo = json_encode($echo);
   $md5_new = md5($echo,true);

@@ -79,7 +79,7 @@ function tab_title($title,$path,$tag) {
   $names = implode('|',array_merge(['disk','parity'],$pools));
   if (preg_match("/^($names)/",$title)) {
     $device = strtok($title,' ');
-    $title = str_replace($device,_(my_disk($device),3),$title);
+    $title = str_replace($device,__(my_disk($device),3),$title);
   }
   $title = _(parse_text($title));
   $wrapperClasses = 'left inline-flex flex-row items-center gap-1';

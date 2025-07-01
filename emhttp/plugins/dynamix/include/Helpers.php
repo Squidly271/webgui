@@ -123,7 +123,7 @@ function my_id($id) {
 
 function my_word($num) {
   $words = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty','twenty-one','twenty-two','twenty-three','twenty-four','twenty-five','twenty-six','twenty-seven','twenty-eight','twenty-nine','thirty'];
-  return $num < count($words) ? _($words[$num],1) : $num;
+  return $num < count($words) ? __($words[$num],1) : $num;
 }
 
 function my_usage() {
