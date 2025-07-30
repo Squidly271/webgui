@@ -1300,7 +1300,7 @@ _(zfs pool status)_:
 <input type="hidden" name="#arg[2]" value="<?=$tag?>">
 
 &nbsp;
-: <input type="submit" value="_(Cancel)_"> *_(Running)_*
+: <span><input type="submit" value="_(Cancel)_"> *_(Running)_*</span>
 
 :info_scrub_cancel_help:
 
