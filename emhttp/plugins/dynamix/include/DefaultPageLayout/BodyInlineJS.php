@@ -202,25 +202,100 @@ nchan_vmaction.on('message', function(data) {
 });
 
 const scrollDuration = 500;
-$(window).scroll(function() {
-  if ($(this).scrollTop() > 0) {
-    $('.back_to_top').fadeIn(scrollDuration);
-  } else {
-    $('.back_to_top').fadeOut(scrollDuration);
+
+/**
+ * Optimized back-to-top functionality that avoids forced reflows
+ * Uses requestAnimationFrame and IntersectionObserver for better performance
+ */
+function initBackToTop() {
+  const backToTopElement = document.querySelector('.back_to_top');
+  const moveToEndElement = document.querySelector('.move_to_end');
+  
+  if (!backToTopElement) return;
+  
+  let isScrolling = false;
+  let scrollTimeout = null;
+  let lastScrollY = 0;
+  
+  // Use requestAnimationFrame to throttle scroll events and avoid forced reflows
+  function handleScroll() {
+    if (!isScrolling) {
+      requestAnimationFrame(() => {
+        const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Only update visibility if scroll position has meaningfully changed
+        if (Math.abs(currentScrollY - lastScrollY) > 5) {
+          const shouldShow = currentScrollY > 100; // Show after scrolling 100px
+          
+          if (shouldShow && backToTopElement.style.display !== 'block') {
+            backToTopElement.style.display = 'block';
+            backToTopElement.style.opacity = '0';
+            requestAnimationFrame(() => {
+              backToTopElement.style.transition = `opacity ${scrollDuration}ms ease-in-out`;
+              backToTopElement.style.opacity = '1';
+            });
+          } else if (!shouldShow && backToTopElement.style.display !== 'none') {
+            backToTopElement.style.transition = `opacity ${scrollDuration}ms ease-in-out`;
+            backToTopElement.style.opacity = '0';
+            setTimeout(() => {
+              if (backToTopElement.style.opacity === '0') {
+                backToTopElement.style.display = 'none';
+              }
+            }, scrollDuration);
+          }
+          
+          lastScrollY = currentScrollY;
+        }
+        
+        isScrolling = false;
+      });
+      isScrolling = true;
+    }
   }
-});
+  
+  // Throttled scroll listener
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  
+  // Initial check on page load to show button if already scrolled
+  handleScroll();
+  
+  // Back to top click handler
+  backToTopElement.addEventListener('click', function(event) {
+    event.preventDefault();
+    
+    // Smooth scroll to top using modern API
+    if ('scrollBehavior' in document.documentElement.style) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      // Fallback for older browsers
+      $('html,body').animate({scrollTop: 0}, scrollDuration);
+    }
+    return false;
+  });
+  
+  // Move to end click handler
+  if (moveToEndElement) {
+    moveToEndElement.addEventListener('click', function(event) {
+      event.preventDefault();
+      
+      if ('scrollBehavior' in document.documentElement.style) {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else {
+        $('html,body').animate({scrollTop: $(document).height()}, scrollDuration);
+      }
+      return false;
+    });
+  }
+}
 
-$('.move_to_end').click(function(event) {
-  event.preventDefault();
-  $('html,body').animate({scrollTop:$(document).height()},scrollDuration);
-  return false;
-});
-
-$('.back_to_top').click(function(event) {
-  event.preventDefault();
-  $('html,body').animate({scrollTop:0},scrollDuration);
-  return false;
-});
+// Initialize back-to-top functionality
+initBackToTop();
 
 <?if ($entity):?>
 $.post('/webGui/include/Notify.php',{cmd:'init',csrf_token:csrf_token});
@@ -290,7 +365,65 @@ $(function() {
     });
   }
   $('form').append($('<input>').attr({type:'hidden', name:'csrf_token', value:csrf_token}));
-  setInterval(function(){if ($(document).height() > $(window).height()) $('.move_to_end').fadeIn(scrollDuration); else $('.move_to_end').fadeOut(scrollDuration);},250);
+  
+  // Optimized move_to_end visibility check using ResizeObserver
+  function initMoveToEnd() {
+    const moveToEndElement = document.querySelector('.move_to_end');
+    if (!moveToEndElement) return;
+    
+    function checkMoveToEndVisibility() {
+      const isScrollable = document.documentElement.scrollHeight > window.innerHeight;
+      const isAtBottom = (window.pageYOffset + window.innerHeight) >= (document.documentElement.scrollHeight - 5); // 5px tolerance
+      
+      // Show only if page is scrollable AND not already at the bottom
+      const shouldShow = isScrollable && !isAtBottom;
+      
+      if (shouldShow && moveToEndElement.style.display !== 'block') {
+        moveToEndElement.style.display = 'block';
+        moveToEndElement.style.opacity = '0';
+        requestAnimationFrame(() => {
+          moveToEndElement.style.transition = `opacity ${scrollDuration}ms ease-in-out`;
+          moveToEndElement.style.opacity = '1';
+        });
+      } else if (!shouldShow && moveToEndElement.style.display !== 'none') {
+        moveToEndElement.style.transition = `opacity ${scrollDuration}ms ease-in-out`;
+        moveToEndElement.style.opacity = '0';
+        setTimeout(() => {
+          if (moveToEndElement.style.opacity === '0') {
+            moveToEndElement.style.display = 'none';
+          }
+        }, scrollDuration);
+      }
+    }
+    
+    // Check on load
+    checkMoveToEndVisibility();
+    
+    // Also check on scroll to hide when reaching bottom
+    let isScrollingMoveToEnd = false;
+    function handleMoveToEndScroll() {
+      if (!isScrollingMoveToEnd) {
+        requestAnimationFrame(() => {
+          checkMoveToEndVisibility();
+          isScrollingMoveToEnd = false;
+        });
+        isScrollingMoveToEnd = true;
+      }
+    }
+    
+    window.addEventListener('scroll', handleMoveToEndScroll, { passive: true });
+    
+    // Use ResizeObserver for efficient resize detection
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(checkMoveToEndVisibility);
+      resizeObserver.observe(document.body);
+    } else {
+      // Fallback for older browsers
+      window.addEventListener('resize', checkMoveToEndVisibility);
+    }
+  }
+  
+  initMoveToEnd();
 });
 
 var gui_pages_available = [];
